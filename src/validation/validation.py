@@ -79,6 +79,22 @@ def customer_revenue_share(df):
         .sort_values(ascending=False)
     )
 
+def product_revenue_share(df):
+    """
+    Calculates total revenue contribution by customer type.
+
+    Required Columns:
+    - customer_type
+    - revenue
+
+    Returns:
+    pd.Series: Total revenue per customer type (descending order)
+    """
+    return (
+        df.groupby('product_name')['revenue']
+        .sum()
+        .sort_values(ascending=False)
+    )
 
 # =========================
 # TIME SERIES VALIDATION

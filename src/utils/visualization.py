@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import seaborn as sns
 
 
 def plot_pie_chart(
@@ -104,5 +105,68 @@ def plot_line_chart(
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+def scatter_plot(
+    df,
+    x,
+    y,
+    hue=None,
+    title=None,
+    xlabel=None,
+    ylabel=None,
+    figsize=(7, 5),
+    alpha=0.6
+):
+    """
+    Generic scatter plot utility for EDA.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input dataframe
+    x : str
+        Column name for x-axis
+    y : str
+        Column name for y-axis
+    hue : str, optional
+        Column name for color grouping
+    title : str, optional
+        Plot title
+    xlabel : str, optional
+        X-axis label
+    ylabel : str, optional
+        Y-axis label
+    figsize : tuple
+        Figure size
+    alpha : float
+        Transparency level
+    """
+
+    plt.figure(figsize=figsize)
+
+    if hue:
+        sns.scatterplot(
+            data=df,
+            x=x,
+            y=y,
+            hue=hue,
+            alpha=alpha
+        )
+    else:
+        plt.scatter(
+            df[x],
+            df[y],
+            alpha=alpha
+        )
+
+    plt.title(title or f"{y} vs {x}")
+    plt.xlabel(xlabel or x)
+    plt.ylabel(ylabel or y)
     plt.tight_layout()
     plt.show()
