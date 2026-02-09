@@ -9,3 +9,31 @@ CUSTOMER_PRIORITY = [
     "Retail",
     "Contractor"
 ]
+
+# config.py
+
+PRICING_CONSTRAINTS = {
+    "pipe": {
+        "max_abs_increase": 10,      # ₹10
+        "max_pct_increase": 0.10,    # 10%
+        "max_unit_drop": 0.05        # 5%
+    },
+    "irrigation": {
+        "max_abs_increase": 10,      # ₹10
+        "max_pct_increase": 0.10,    # 10%
+        "max_unit_drop": 0.05        # 5%
+    },
+    "fitting": {
+        "max_abs_increase": 10,      # ₹10
+        "max_pct_increase": 0.10,    # 10%
+        "max_unit_drop": 0.05        # 5%
+    },
+    "motor": {
+        "max_abs_increase": 200,     # ₹200
+        "max_pct_increase": 0.10,    # 10%
+        "max_unit_drop": 0.03        # 5%
+    }
+}
+
+DEFAULT_ITERATIONS = 150
+
