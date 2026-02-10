@@ -122,7 +122,7 @@ def get_max_price_from_config(base_price, category, config):
     max_pct = rules["max_pct_increase"] * base_price
 
     max_increase = min(max_abs, max_pct)
-    return int(base_price + max_increase)
+    return base_price + max_increase
 
 
 
@@ -163,7 +163,7 @@ def optimize_revenue_single_product(
             continue
 
         if revenue > best_revenue:
-            best_price = candidate_price
+            best_price = round(candidate_price)
             best_units = units
             best_revenue = revenue
 

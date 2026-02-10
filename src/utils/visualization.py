@@ -8,6 +8,8 @@ import seaborn as sns
 
 def plot_pie_chart(
     data,
+    path="../reports/EDA/images/",
+    filename=None,
     title="Pie Chart",
     autopct="%1.1f%%",
     startangle=90,
@@ -29,6 +31,7 @@ def plot_pie_chart(
     plt.ylabel("")
     plt.title(title)
     plt.tight_layout()
+    plt.savefig(f"{path}{filename}",bbox_inches="tight")
     plt.show()
 
 
@@ -36,6 +39,8 @@ def plot_pie_chart(
 def plot_bar_chart(
     data,
     y=None,
+    path="../reports/EDA/images/",
+    filename=None,
     title="Bar Chart",
     xlabel=None,
     ylabel=None,
@@ -68,12 +73,16 @@ def plot_bar_chart(
     plt.ylabel(ylabel)
     plt.xticks(rotation=rotation)
     plt.tight_layout()
+    plt.savefig(f"{path}{filename}",bbox_inches="tight")
     plt.show()
+
 
 
 
 def plot_line_chart(
     data,
+    path="../reports/EDA/images/",
+    filename=None,
     y=None,
     title="Line Chart",
     xlabel=None,
@@ -106,6 +115,7 @@ def plot_line_chart(
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.tight_layout()
+    plt.savefig(f"{path}{filename}",bbox_inches="tight")
     plt.show()
 
 
@@ -116,6 +126,8 @@ def scatter_plot(
     df,
     x,
     y,
+    path="../reports/EDA/images/",
+    filename=None,
     hue=None,
     title=None,
     xlabel=None,
@@ -169,4 +181,6 @@ def scatter_plot(
     plt.xlabel(xlabel or x)
     plt.ylabel(ylabel or y)
     plt.tight_layout()
+    plt.savefig(f"{path}{filename}",bbox_inches="tight")
     plt.show()
+

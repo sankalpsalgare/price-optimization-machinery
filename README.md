@@ -1,179 +1,306 @@
-📈 Price Optimization for Irrigation & Machinery Retail
-Overview
+# 📈 Price Optimization & Revenue Maximization Pipeline
 
-This project simulates a real-world irrigation and machinery retail business and builds an end-to-end analytics pipeline to understand demand behavior and support pricing and revenue optimization.
+## Overview
 
-The business sells:
+This project implements an **end-to-end price optimization system** designed to maximize **revenue and profit** using **historical sales data** and **product-level price elasticity modeling**.
 
-PVC pipes and fittings
+The pipeline takes raw transactional data, cleans and aggregates it into a **week × product** format, estimates **own-price elasticities**, and then applies **constrained optimization** to recommend optimal prices under realistic business rules such as:
 
-Irrigation accessories
+* Maximum absolute price increase
+* Maximum percentage price change
+* Optional demand drop constraints
+* Price rounding rules
 
-Motor pumps (high value, low volume)
+The system is modular, configurable, and built to be extended (e.g., category-level rules, profit optimization, scenario testing).
 
-Sales are influenced by seasonality (pre-monsoon peak), customer type, inflation, and external shocks such as COVID and droughts.
-The project mirrors how pricing problems are handled in real analytics teams — starting from data validation and ending with elasticity modeling.
+---
 
-Business Problem
+## Business Objective
 
-Pricing decisions in agriculture-dependent retail are complex:
+The core objective is to answer:
 
-Demand varies strongly by season
+> *“Given how sensitive demand is to price changes, what is the **best price** for each product that maximizes revenue (or profit) **without violating business constraints**?”*
 
-Different customers respond differently to price changes
+This solution is especially suited for:
 
-Inflation and supply shocks impact margins
+* Retail & FMCG pricing
+* Limited product catalogs
+* Scenarios where **self-elasticity** is more important than cross-elasticity
 
-Some products tolerate price increases, others do not
+---
 
-Core question:
+## Key Features
 
-How does demand respond to price changes, and how can pricing be adjusted to improve revenue and profit without hurting volume?
+* ✅ Product-level **price elasticity estimation**
+* ✅ Weekly aggregation (price averaged, volumes summed)
+* ✅ External factor handling (seasonality, COVID, drought, etc.)
+* ✅ Revenue optimization with **hard price constraints**
+* ✅ Config-driven rules (easy to tweak)
+* ✅ Clean, reproducible pipeline
+* ✅ Optimized price rounding
 
-## Project Highlights
-- Synthetic transaction data (2019–2025)
-- COVID & drought impact modeling
-- Seasonality-aware pricing
-- Customer-wise elasticity
-- Revenue optimization
+---
 
-## Tech Stack
-- Python
-- Pandas, NumPy
-- Scikit-learn
-- Matplotlib, Seaborn
-- Streamlit (planned)
+## Project Structure
 
-## Structure
-```text
-price-optimizer/
+```
+price_optimizer/
 │
 ├── data/
-│   ├── raw/                # Raw synthetic data
-│   ├── processed/          # Cleaned & validated datasets
+│   ├── raw/                  # Raw transactional data
+│   ├── processed/            # Cleaned & aggregated datasets
+│
+├── elasticity/
+│   ├── elasticity_utils.py   # Elasticity calculation functions
+│   ├── models.py             # Regression / elasticity models
+│
+├── optimizer/
+│   ├── dataprep.py           # Optimization-ready dataset creation
+│   ├── revenue_optimizer.py  # Core optimization logic
+│   ├── rounding.py           # Price rounding rules
+│
+├── config.py                 # All business constraints & configs
 │
 ├── notebooks/
-│   ├── 01_data_sanity_checks.ipynb
-│   ├── 02_time_and_seasonality.ipynb
-│   ├── 03_customer_and_product_analysis.ipynb
-│   ├── 04_price_dynamics.ipynb
-│   ├── 05_elasticity_analysis.ipynb
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_elasticity_analysis.ipynb
+│   ├── 03_price_optimization.ipynb
 │
-├── src/
-│   ├── dataprep/           # Data generation & preprocessing
-│   ├── eda/                # Reusable EDA metrics & plots
-│   ├── validation/         # Sanity & business rule checks
-│   ├── modeling/           # Elasticity & optimization logic
-├── dashboards/
-├── README.md
-└── requirements.txt
+├── requirements.txt
+└── README.md
+```
 
-Notebooks Description
-📓 01_data_sanity_checks.ipynb
+---
 
-Purpose:
-Ensure the dataset is logically consistent and business-realistic before analysis.
+## Data Assumptions
 
-Key checks:
+### Input Data (Transactional Level)
 
-Missing values and data types
+Each row represents a transaction (or daily aggregation) with at least:
 
-Date range validation (up to June 2025)
+* `date`
+* `product_name`
+* `specification`
+* `selling_price`
+* `units_sold`
+* `revenue`
+* `profit`
+* `discount`
+* Optional flags (season, covid, drought, etc.)
 
-Revenue consistency (price × quantity)
+---
 
-Cost vs selling price (including loss-making cases)
+## Step-by-Step Pipeline
 
-Why it matters:
-Prevents silent data issues and ensures downstream insights are reliable.
+### 1️⃣ Product Identification
 
-📓 02_time_and_seasonality.ipynb
+A **unique product_id** is created by concatenating:
 
-Purpose:
-Understand how demand and revenue change over time.
+```
+product_id = product_name + '_' + specification
+```
 
-Key analyses:
+This ensures stable product tracking across time.
 
-Year-wise transaction trends
+---
 
-COVID impact (2019–2022 dip)
+### 2️⃣ Weekly Aggregation
 
-Recovery post-2022
+Data is converted into **week × product** format:
 
-Month-wise and season-wise demand
+| Column        | Aggregation Logic |
+| ------------- | ----------------- |
+| selling_price | Mean              |
+| units_sold    | Sum               |
+| revenue       | Sum               |
+| profit        | Sum               |
+| discount      | Sum               |
 
-Pre-monsoon peak validation
+Each `week_id` is unique and time-ordered.
 
-Drought-related demand reduction
+This structure is used for **elasticity modeling** and **optimization**.
 
-Why it matters:
-Seasonality is critical for pricing, inventory planning, and forecasting.
+---
 
-📓 03_customer_and_product_analysis.ipynb
+### 3️⃣ Elasticity Modeling
 
-Purpose:
-Analyze who buys and what they buy.
+#### Approach
 
-Key analyses:
+* Only **own-price elasticities** are used
+* Separate elasticity per product
+* External factors added as regressors (when available)
 
-Transaction and revenue share by customer type
+Example model:
 
-Farmers as dominant segment, followed by retailers
+```
+log(units_sold) = β0 + β1 * log(price) + β2 * season + β3 * covid + ε
+```
 
-SKU-level transaction volume
+Where:
 
-High-price products with lower frequency
+* `β1` = **price elasticity of demand**
 
-Revenue contribution by category and product
+#### Output
 
-Why it matters:
-Enables customer- and product-specific pricing strategies.
+A clean elasticity table:
 
-📓 04_price_dynamics.ipynb
+| product_id | elasticity | model_used | r_squared |
 
-Purpose:
-Study how prices behave over time.
+---
 
-Key analyses:
+### 4️⃣ Optimization Data Preparation
 
-Average selling price trends (inflation effects)
+From historical data, the **last N weeks** (typically 8–10) are selected to compute:
 
-Monthly price volatility and shocks (every 4–6 months)
+* Base price (average selling price)
+* Base units sold
+* Base revenue
+* Base profit
 
-Margin pressure and below-cost sales
+This becomes the **baseline** for optimization.
 
-Declining average prices from 2023 → 2024
+---
 
-Why it matters:
-Elasticity and optimization models fail if price behavior is unrealistic.
+### 5️⃣ Business Constraints (config-driven)
 
-📓 05_elasticity_analysis.ipynb
+All constraints live in `config.py`.
 
-Purpose:
-Quantify how sensitive demand is to price changes.
+Example:
 
-Key analyses:
+```python
+PRICE_CONSTRAINTS = {
+    "default": {
+        "max_price_change": 10,        # absolute ₹
+        "max_pct_change": 0.10         # 10%
+    },
+    "premium": {
+        "max_price_change": 25,
+        "max_pct_change": 0.15
+    }
+}
+```
 
-Price vs quantity relationships
+The **effective max price change** is:
 
-Monthly SKU-level aggregation
+```
+min(max_price_change, base_price * max_pct_change)
+```
 
-Log-log regression for elasticity estimation
+---
 
-Elasticity by product and category
+### 6️⃣ Revenue Optimization Logic
 
-Why it matters:
-Elasticity is the foundation for price optimization and revenue simulation.
+For each product:
 
+1. Generate candidate prices within allowed bounds
+2. Predict demand using elasticity:
 
-Key Project Strengths
+```
+Q_new = Q_base * (P_new / P_base) ^ elasticity
+```
 
-Realistic synthetic data (not toy examples)
+3. Compute:
 
-Explicit modeling of economic shocks
+* New revenue
+* Revenue delta
+* Profit delta
 
-Strong separation of analysis and logic
+4. Select price that **maximizes revenue**
 
-Business-first validation of results
+---
 
-Clear progression from EDA to modeling
+### 7️⃣ Price Rounding
+
+Optimized prices are rounded using predefined rules (e.g.):
+
+* Nearest integer
+* Nearest 5 or 10
+
+Rounding happens **after optimization** to avoid biasing the solution space.
+
+---
+
+## 📊 Analysis Reports
+
+- [Exploratory Data Analysis](reports/eda/EDA.md)
+- [Elasticity Analysis](reports/elasticity/Elasticity_Report.md)
+- [Price Optimization Results](reports/optimization/Optimization_Report.md)
+
+---
+
+## Final Output
+
+The final optimized dataframe includes:
+
+| Column            | Description              |
+| ----------------- | ------------------------ |
+| product_id        | Unique product           |
+| base_price        | Historical average price |
+| optimized_price   | Recommended price        |
+| price_change      | Absolute change          |
+| base_units        | Historical units         |
+| predicted_units   | Expected units           |
+| base_revenue      | Historical revenue       |
+| optimized_revenue | Expected revenue         |
+| revenue_change    | Revenue delta            |
+| profit_change     | Profit delta             |
+
+---
+
+## How to Run
+
+1. Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+2. Prepare elasticity
+
+* Run elasticity notebooks or scripts
+
+3. Prepare optimization data
+
+4. Run revenue optimizer
+
+5. Review optimized output
+
+---
+
+## Design Decisions & Rationale
+
+* ❌ No cross-elasticity (limited product overlap)
+* ✅ Config-driven constraints (business-friendly)
+* ✅ Modular pipeline (easy to test & extend)
+* ✅ Elasticity first, optimization second (clean separation)
+
+---
+
+## Possible Extensions
+
+* Profit maximization instead of revenue
+* Category-level elasticity pooling
+* Cross-price elasticity
+* Scenario simulations
+* Store-level optimization
+* Automated model selection
+
+---
+
+## Author Notes
+
+This project was built with a **practical pricing mindset** — focusing on:
+
+* Explainability
+* Business realism
+* Clean, reusable code
+
+It is designed to be **production-ready** with minimal refactoring.
+
+---
+
+## Contact
+
+For questions, improvements, or discussions around pricing science and optimization, feel free to reach out.
+
+Happy optimizing 🚀
