@@ -49,24 +49,33 @@ price_optimizer/
 ├── data/
 │   ├── raw/                  # Raw transactional data
 │   ├── processed/            # Cleaned & aggregated datasets
+│   ├── external/             # Elasticity and optimized datasets
+|
+├── reports/
+│   ├── EDA/                  # EDA charts
+│   ├── Elasticity/           # Elasticity analysis reports
+|   ├── Optimization/         # Optimization analysis reports
 │
-├── elasticity/
-│   ├── elasticity_utils.py   # Elasticity calculation functions
-│   ├── models.py             # Regression / elasticity models
-│
-├── optimizer/
-│   ├── dataprep.py           # Optimization-ready dataset creation
-│   ├── revenue_optimizer.py  # Core optimization logic
-│   ├── rounding.py           # Price rounding rules
-│
-├── config.py                 # All business constraints & configs
+├── src/
+│   ├── config/               # All business constraints and configs
+│   ├── dataprep/             # Data preparation
+│   ├── eda/                  # Functions for EDA
+|   ├── elasticity/           # Elasticity logic and functions
+│   ├── optimization/         # Optimizer logic
+|   ├── utils/                # Visualization functions
+│   ├── validation/           # Data validations functions
 │
 ├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_elasticity_analysis.ipynb
-│   ├── 03_price_optimization.ipynb
+│   ├── 01_EDA_Sanity_checks_src.ipynb
+│   ├── 02_Time_and_seasonality.ipynb
+│   ├── 03_Customer_and_Product_analysis.ipynb
+|   ├── 04_Price_Dynamics.ipynb
+│   ├── 05_Elasticity_analysis.ipynb
+|   ├── 06_Optimization.ipynb
+│   ├── 07_Summary_workbook.ipynb
 │
-├── requirements.txt
+├── env/
+├── .gitignore
 └── README.md
 ```
 
@@ -222,9 +231,9 @@ Rounding happens **after optimization** to avoid biasing the solution space.
 
 ## 📊 Analysis Reports
 
-- [Exploratory Data Analysis](reports/eda/EDA.md)
+- [Exploratory Data Analysis](reports/EDA/eda.md)
 - [Elasticity Analysis](reports/elasticity/Elasticity_Report.md)
-- [Price Optimization Results](reports/optimization/Optimization_Report.md)
+- [Price Optimization Results](reports/Optimization/optimization.md)
 
 ---
 
@@ -255,13 +264,15 @@ The final optimized dataframe includes:
 pip install -r requirements.txt
 ```
 
-2. Prepare elasticity
+2. Dataprep (This step is for synthetic data creation)
 
-* Run elasticity notebooks or scripts
+* Run src/dataprep.py
 
-3. Prepare optimization data
+3. Run all the EDA notebooks in sequenct
 
-4. Run revenue optimizer
+4. Run elasticity notebook and get the elasticity file
+
+4. Run revenue optimizer notebook
 
 5. Review optimized output
 
